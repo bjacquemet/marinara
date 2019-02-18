@@ -7,10 +7,28 @@ import { ExpirationPage } from './Expiration';
 import Metronome from '../Metronome';
 import Mutex from '../Mutex';
 
+const token = "SLACK_TOKEN";
+const slackBaseUrlProfileSet = "https://slack.com/api/users.profile.set?token=" + token + "&profile=";
+const slackBaseUrlProfileGet = "https://slack.com/api/users.profile.get?token=" + token;
+
+const Http = new XMLHttpRequest();
+let formerProfile = {statusText: "", statusEmoji: ""};
+
 class BadgeObserver
 {
   onTimerStart(phase, nextPhase, elapsed, remaining) {
-    this.updateBadge({ phase, minutes: Math.round(remaining / 60) });
+    let timerStart = this;
+    Http.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        let slackResponse = JSON.parse(Http.response);
+
+        formerProfile.statusText = slackResponse.profile.status_text;
+        formerProfile.statusEmoji = slackResponse.profile.status_emoji;
+        timerStart.updateBadge({ phase, minutes: Math.round(remaining / 60) });
+      }
+    };
+    Http.open("GET", slackBaseUrlProfileGet);
+    Http.send();
   }
 
   onTimerTick(phase, nextPhase, elapsed, remaining) {
@@ -19,10 +37,34 @@ class BadgeObserver
 
   onTimerStop(phase, nextPhase) {
     this.removeBadge();
+    let profileJson = {
+      status_emoji: formerProfile.statusEmoji,
+      status_text: formerProfile.statusText
+    };
+
+    const slackProfileUpdateUrl = slackBaseUrlProfileSet + encodeURI(JSON.stringify(profileJson));
+    Http.open("POST", slackProfileUpdateUrl);
+    Http.send();
+    Http.onreadystatechange=(e)=>{
+      console.log("onTimerStop");
+      console.log(Http.responseText);
+    };
   }
 
   onTimerPause(phase, nextPhase) {
     this.updateBadge({ phase, text: '—', tooltip: M.timer_paused });
+    let profileJson = {
+      status_emoji: formerProfile.statusEmoji,
+      status_text: formerProfile.statusText
+    };
+
+    const slackProfileUpdateUrl = slackBaseUrlProfileSet + encodeURI(JSON.stringify(profileJson));
+    Http.open("POST", slackProfileUpdateUrl);
+    Http.send();
+    Http.onreadystatechange=(e)=>{
+      console.log("onTimerPause");
+      console.log(Http.responseText);
+    };
   }
 
   onTimerResume(phase, nextPhase, elapsed, remaining) {
@@ -31,6 +73,19 @@ class BadgeObserver
 
   onTimerExpire(phase, nextPhase) {
     this.removeBadge();
+    let profileJson = {
+      status_emoji: formerProfile.statusEmoji,
+      status_text: formerProfile.statusText
+    };
+
+    const slackProfileUpdateUrl = slackBaseUrlProfileSet + encodeURI(JSON.stringify(profileJson));
+    Http.open("POST", slackProfileUpdateUrl);
+    Http.send();
+    Http.onreadystatechange=(e)=>{
+      console.log("onTimerExpire");
+      console.log(Http.responseText);
+    }
+
   }
 
   updateBadge({ phase, minutes, tooltip, text }) {
@@ -40,14 +95,31 @@ class BadgeObserver
       [Phase.LongBreak]: M.long_break_title
     }[phase];
 
+    let statusEmoji = phase === Phase.Focus ? ':dart:' : ':ok_hand:';
+    let statusText = phase === Phase.Focus ? "I'm currently focused, I'll be back in X minutes" : "I'm in a break for still X minutes";
+
     if (minutes != null) {
       text = minutes < 1 ? M.less_than_minute : M.n_minutes(minutes);
       tooltip = M.browser_action_tooltip(title, M.time_remaining(text));
     } else {
       tooltip = M.browser_action_tooltip(title, tooltip);
     }
-
     let color = phase === Phase.Focus ? '#bb0000' : '#11aa11';
+
+    statusText = statusText.replace("X", text.slice(0, -1));
+
+    let profileJson = {
+      status_emoji: statusEmoji,
+      status_text: statusText
+    };
+
+    const slackProfileUpdateUrl = slackBaseUrlProfileSet + encodeURI(JSON.stringify(profileJson));
+    Http.open("POST", slackProfileUpdateUrl);
+    Http.send();
+    Http.onreadystatechange=(e)=>{
+      console.log(Http.responseText);
+    }
+
     chrome.browserAction.setTitle({ title: tooltip });
     chrome.browserAction.setBadgeText({ text });
     chrome.browserAction.setBadgeBackgroundColor({ color });

@@ -20,7 +20,7 @@ function clone(obj) {
 class SettingsSchema
 {
   get version() {
-    return 5;
+    return 6;
   }
 
   get default() {
@@ -52,6 +52,9 @@ class SettingsSchema
           tab: true,
           sound: null
         }
+      },
+      slack : {
+        token: null,
       },
       autostart: {
         time: null,
@@ -150,6 +153,17 @@ class SettingsSchema
     };
 
     return v5;
+  }
+
+  from5To6(v5) {
+    let v6 = clone(v5);
+    v6.version = 6;
+
+    v6.slack = {
+      token: null,
+    };
+
+    return v6;
   }
 }
 

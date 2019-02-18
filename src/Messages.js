@@ -441,6 +441,15 @@ class Messages
   get show_new_tab_notification() {
     return chrome.i18n.getMessage('show_new_tab_notification', []);
   }
+  get slack_description() {
+    return chrome.i18n.getMessage('slack_description', []);
+  }
+  get slack_title() {
+    return chrome.i18n.getMessage('slack_title', []);
+  }
+  get slack_token() {
+    return chrome.i18n.getMessage('slack_token', []);
+  }
   get small_clock() {
     return chrome.i18n.getMessage('small_clock', []);
   }

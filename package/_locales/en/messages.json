@@ -926,5 +926,17 @@
         "example": "Duration must be a positive number."
       }
     }
+  },
+  "slack_title" : {
+    "message": "Slack",
+    "description": "Slack Name"
+  },
+  "slack_description" : {
+    "message": "You can automatically update your Slack status and emojis based on your Pomodoro phase",
+    "description": "Explanation the Slack section"
+  },
+  "slack_token" : {
+    "message": "Slack Token (you have to create an app on Slack for that)",
+    "description": "Slack Token - delivered by Slack after creating an app"
   }
 }

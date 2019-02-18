@@ -157,6 +157,19 @@
         </div>
       </fieldset>
     </div>
+    <div class="section">
+      <h2>{{ M.slack_title }}</h2>
+      <p>{{ M.slack_description }}</p>
+      <p class="field">
+        <label>
+          <span>{{ M.slack_token }}</span>
+          <input
+            type="text"
+            v-model.number="settings.slack.token">
+        </label>
+      </p>
+      <p><a href="https://api.slack.com/slack-apps#creating_apps">Create a specific Slack app and get the corresponding token</a></p>
+    </div>
     <div class="section autostart">
       <h2>{{ M.autostart_title }}</h2>
       <p>{{ M.autostart_description }}</p>
